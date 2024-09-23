@@ -5,37 +5,44 @@ import 'objetTrouve.dart'; // Ton modèle ObjetTrouve
 
 class ObjetsTrouvesProvider with ChangeNotifier {
   List<ObjetTrouve> _objetsTrouves = [];
-  String? _gareSelectionnee;
-  String? _categorieSelectionnee;
+  bool _enChargement = false; // Pour indiquer si le chargement est en cours
+  int _pageActuelle = 0; // Pour gérer la pagination
 
   List<ObjetTrouve> get objetsTrouves => _objetsTrouves;
-  String? get gareSelectionnee => _gareSelectionnee;
-  String? get categorieSelectionnee => _categorieSelectionnee;
+  bool get enChargement => _enChargement; // Indique si le chargement est en cours
 
-  // Méthodes pour mettre à jour les filtres
-  void setGare(String gare) {
-    _gareSelectionnee = gare;
-    notifyListeners();
-  }
-
-  void setCategorie(String categorie) {
-    _categorieSelectionnee = categorie;
-    notifyListeners();
-  }
-
-  // Méthode pour récupérer les objets trouvés
+  // Méthode pour récupérer les objets trouvés avec pagination
   Future<void> recupererObjets() async {
-    if (_gareSelectionnee != null && _categorieSelectionnee != null) {
-      final response = await http.get(Uri.parse(
-          'https://data.sncf.com/api/records/1.0/search/?dataset=objets-trouves-restitution&q=&rows=100&facet=gc_obo_gare_origine_r_name&facet=gc_obo_type_c&refine.gc_obo_gare_origine_r_name=$_gareSelectionnee&refine.gc_obo_type_c=$_categorieSelectionnee'));
+    if (_enChargement) return; // Empêche de déclencher plusieurs fois le chargement
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body)['records'];
-        _objetsTrouves = data.map((json) => ObjetTrouve.fromJson(json['fields'])).toList();
-      } else {
-        throw Exception('Échec de la récupération des objets');
-      }
-      notifyListeners();
+    _enChargement = true;
+    notifyListeners();
+
+    var url = Uri.parse(
+        'https://data.sncf.com/api/records/1.0/search/?dataset=objets-trouves-restitution&rows=100'
+    );
+
+    print('Requête envoyée : $url'); // Affiche l'URL utilisée pour déboguer
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      var jsonResponse = jsonDecode(response.body);
+      var records = jsonResponse['records'];
+
+      // Transformation correcte de chaque élément de 'records' en ObjetTrouve
+      List<ObjetTrouve> objets = records.map<ObjetTrouve>((json) {
+        return ObjetTrouve.fromJson(json['fields']);
+      }).toList();
+
+      // Ajouter les objets récupérés à la liste existante
+      _objetsTrouves.addAll(objets);
+      _pageActuelle += 1; // Incrémenter pour la page suivante
+    } else {
+      print('Erreur de récupération des objets : ${response.statusCode}');
     }
+
+    _enChargement = false;
+    notifyListeners();
   }
 }

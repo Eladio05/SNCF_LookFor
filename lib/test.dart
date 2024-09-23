@@ -4,8 +4,8 @@ import 'package:http/http.dart' as http;
 void main() async {
   // URL de l'API SNCF avec quelques filtres par défaut
   var url = Uri.parse(
-      'https://data.sncf.com/api/records/1.0/search/?dataset=objets-trouves-restitution&q=&rows=5&facet=gc_obo_gare_origine_r_name&facet=gc_obo_type_c');
-
+      'https://data.sncf.com/api/records/1.0/search/?dataset=objets-trouves-restitution&q=&rows=2000&facet=gc_obo_gare_origine_r_name&facet=gc_obo_type_c');
+  int i = 1;
   // Effectuer une requête HTTP GET
   var response = await http.get(url);
 
@@ -16,11 +16,13 @@ void main() async {
 
     // Afficher chaque objet trouvé dans la réponse
     for (var record in records) {
+      print ('Objet numéro $i');
       print('Gare: ${record['fields']['gc_obo_gare_origine_r_name']}');
       print('Catégorie: ${record['fields']['gc_obo_type_c']}');
       print('Nature: ${record['fields']['gc_obo_nature_c']}');
       print('Date: ${record['fields']['date']}');
       print('-------------------------');
+      i += 1;
     }
   } else {
     print('Échec de la récupération des objets : ${response.statusCode}');
