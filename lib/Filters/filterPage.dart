@@ -173,18 +173,18 @@ class _FiltersPageState extends State<FiltersPage> {
               ),
 
               // Bouton Voir tous les objets
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => HomePage(filters: {}),
-                    ),
-                  );
-                },
-                child: Text('Voir tous les objets'),
-              ),
-            ],
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HomePage(filters: {}), // On passe un objet vide
+                  ),
+                );
+              },
+              child: Text('Voir tous les objets'),
+            ),
+          ],
           ),
         ),
       ),

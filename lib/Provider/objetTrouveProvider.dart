@@ -7,28 +7,29 @@ class ObjetsTrouvesProvider with ChangeNotifier {
   List<ObjetTrouve> _objetsTrouves = [];
   bool _enChargement = false;
   int _pageActuelle = 0;
+  bool _finPagination = false; // Ajout pour savoir si la pagination est terminée
 
   List<ObjetTrouve> get objetsTrouves => _objetsTrouves;
   bool get enChargement => _enChargement;
 
-  Future<void> recupererObjetsAvecFiltres(Map<String, String> filters) async {
-    if (_enChargement) return;
+  Future<void> recupererObjetsAvecFiltres(Map<String, String?> filters) async {
+    if (_enChargement || _finPagination) return; // Stopper si déjà en cours ou si fin de pagination
 
     _enChargement = true;
     notifyListeners();
 
-    // Construction des filtres avec un encodage URL correct
-    String gareFilter = filters['gare']!.isNotEmpty
+    // Construction des filtres
+    String gareFilter = filters['gare'] != null && filters['gare']!.isNotEmpty
         ? filters['gare']!.split(',').map((gare) => 'gc_obo_gare_origine_r_name%3D"$gare"').join('%20or%20')
         : '';
-    String natureFilter = filters['nature']!.isNotEmpty
+    String natureFilter = filters['nature'] != null && filters['nature']!.isNotEmpty
         ? filters['nature']!.split(',').map((nature) => 'gc_obo_nature_c%3D"$nature"').join('%20or%20')
         : '';
-    String typeFilter = filters['type']!.isNotEmpty
+    String typeFilter = filters['type'] != null && filters['type']!.isNotEmpty
         ? filters['type']!.split(',').map((type) => 'gc_obo_type_c%3D"$type"').join('%20or%20')
         : '';
-    String dateFilter = filters['date']!.isNotEmpty
-        ? 'date%3D"${filters['date']}"'
+    String dateFilter = filters['date'] != null && filters['date']!.isNotEmpty
+        ? 'date%3E%3D"${filters['date']}T00:00:00"%20and%20date%3C%3D"${filters['date']}T23:59:59"'
         : '';
 
     // Construction de la chaîne WHERE en combinant les filtres avec l'option OR et AND
@@ -38,14 +39,13 @@ class ObjetsTrouvesProvider with ChangeNotifier {
     if (typeFilter.isNotEmpty) whereClauses.add('($typeFilter)');
     if (dateFilter.isNotEmpty) whereClauses.add(dateFilter);
 
-    // Les différents filtres sont combinés avec "and"
     String where = whereClauses.isNotEmpty ? '&where=${whereClauses.join('%20and%20')}' : '';
 
     var url = Uri.parse(
         'https://data.sncf.com/api/explore/v2.1/catalog/datasets/objets-trouves-restitution/records?limit=100&offset=${_pageActuelle * 100}$where'
     );
 
-    print('Requête URL : $url'); // Log de l'URL générée
+    print('Requête URL : $url'); // Ajoutez ce log pour inspecter l'URL générée
 
     final response = await http.get(url);
 
@@ -53,16 +53,23 @@ class ObjetsTrouvesProvider with ChangeNotifier {
       var jsonResponse = jsonDecode(response.body);
       if (jsonResponse.containsKey('results')) {
         var results = jsonResponse['results'];
+
         List<ObjetTrouve> objets = results.map<ObjetTrouve>((json) {
           return ObjetTrouve.fromJson(json);
         }).toList();
 
-        if (_pageActuelle == 0) {
-          _objetsTrouves = objets; // Si c'est la première page, on remplace la liste
+        if (objets.isNotEmpty) {
+          if (_pageActuelle == 0) {
+            _objetsTrouves = objets; // Si c'est la première page, on remplace la liste
+          } else {
+            _objetsTrouves.addAll(objets); // Sinon, on ajoute à la liste
+          }
+          _pageActuelle += 1;
         } else {
-          _objetsTrouves.addAll(objets); // Sinon, on ajoute à la liste
+          // Si aucun nouvel objet n'est retourné, on arrête la pagination
+          print('Aucun objet supplémentaire');
+          _finPagination = true; // Indique qu'on a atteint la fin de la pagination
         }
-        _pageActuelle += 1;
       }
     } else {
       print('Erreur de récupération des objets : ${response.statusCode}');
@@ -72,11 +79,15 @@ class ObjetsTrouvesProvider with ChangeNotifier {
     notifyListeners();
   }
 
-
+  // Méthode pour réinitialiser la pagination et les objets (appelée lors d'une nouvelle recherche)
+  void reinitialiserPagination() {
+    _pageActuelle = 0;
+    _finPagination = false;
+    _objetsTrouves = [];
+    notifyListeners();
+  }
 
   // Méthode pour récupérer les options distinctes (gares, types, etc.) avec pagination et tri par ordre alphabétique, et filtrage des valeurs nulles
-  // Méthode pour récupérer les options distinctes (gares, types, etc.) avec pagination et tri par ordre alphabétique, et filtrage des valeurs nulles
-// Méthode pour récupérer les options distinctes (gares, types, etc.) avec pagination et tri par ordre alphabétique, et filtrage des valeurs nulles
   Future<List<String>> getDistinctOptions(String field) async {
     List<String> options = [];
     int offset = 0;
@@ -104,7 +115,9 @@ class ObjetsTrouvesProvider with ChangeNotifier {
           if (results != null && results.isNotEmpty) {
             // Ajoute seulement les options valides qui ont la clé et ne sont pas nulles
             List<String> newOptions = results.where((json) =>
-            json['gc_obo_gare_origine_r_name'] != null || json['gc_obo_nature_c'] != null || json['gc_obo_type_c'] != null
+            json['gc_obo_gare_origine_r_name'] != null ||
+                json['gc_obo_nature_c'] != null ||
+                json['gc_obo_type_c'] != null
             ).map<String>((json) {
               if (field == 'gc_obo_gare_origine_r_name') {
                 return json['gc_obo_gare_origine_r_name'].toString();
@@ -133,5 +146,4 @@ class ObjetsTrouvesProvider with ChangeNotifier {
     print('Options récupérées pour $field : $options'); // Vérification finale des options collectées
     return options;
   }
-
 }
