@@ -70,8 +70,8 @@ class _FiltersPageState extends State<FiltersPage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // Sélection multiple pour les gares
-              _buildMultiSelect(
+              // Sélection multiple pour les gares avec recherche intégrée
+              _buildMultiSelectWithSearch(
                 context,
                 'Gare d\'origine',
                 selectedGares,
@@ -161,7 +161,7 @@ class _FiltersPageState extends State<FiltersPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => HomePage(filters: {},),
+                      builder: (context) => HomePage(filters: {}),
                     ),
                   );
                 },
@@ -190,7 +190,80 @@ class _FiltersPageState extends State<FiltersPage> {
     );
   }
 
-  // Méthode pour construire la sélection multiple avec options sélectionnées en haut
+  // Méthode pour construire la sélection multiple avec recherche intégrée dans la liste déroulante
+  Widget _buildMultiSelectWithSearch(
+      BuildContext context,
+      String label,
+      List<String> selectedValues,
+      List<String> options,
+      VoidCallback onClear,
+      ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        MultiSelectDialogField<String>(
+          items: organizeItems(options, selectedValues),
+          title: Text(label),
+          searchable: true,  // Ajout de la fonctionnalité de recherche intégrée
+          selectedColor: Colors.blue,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+            border: Border.all(
+              color: Colors.grey,
+              width: 1,
+            ),
+          ),
+          buttonIcon: Icon(
+            Icons.arrow_drop_down,
+            color: Colors.grey,
+          ),
+          buttonText: Text(
+            label,
+            style: TextStyle(
+              color: Colors.grey[700],
+              fontSize: 16,
+            ),
+          ),
+          initialValue: List.from(selectedValues),  // Mettre à jour la sélection
+          onConfirm: (values) {
+            setState(() {
+              selectedValues.clear();
+              selectedValues.addAll(values);
+            });
+          },
+          chipDisplay: MultiSelectChipDisplay.none(), // Désactivation des chips individuels
+        ),
+        // Affichage du texte "Filtre multiple sélectionné"
+        if (selectedValues.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Wrap(
+              spacing: 8.0,
+              runSpacing: 4.0,
+              children: selectedValues.length > 2
+                  ? [
+                Chip(
+                  label: Text('Filtre multiple sélectionné'),
+                  onDeleted: onClear,
+                )
+              ]
+                  : selectedValues
+                  .map((value) => Chip(
+                label: Text(value),
+                onDeleted: () {
+                  setState(() {
+                    selectedValues.remove(value);
+                  });
+                },
+              ))
+                  .toList(),
+            ),
+          ),
+      ],
+    );
+  }
+
+  // Méthode pour construire la sélection multiple sans recherche
   Widget _buildMultiSelect(
       BuildContext context,
       String label,
@@ -223,7 +296,7 @@ class _FiltersPageState extends State<FiltersPage> {
               fontSize: 16,
             ),
           ),
-          initialValue: List.from(selectedValues),  // Assurer la mise à jour correcte de la sélection
+          initialValue: List.from(selectedValues),  // Mettre à jour la sélection
           onConfirm: (values) {
             setState(() {
               selectedValues.clear();
