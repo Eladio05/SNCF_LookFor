@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart'; // Pour la gestion des dates
 import 'package:multi_select_flutter/multi_select_flutter.dart'; // Package pour la sélection multiple
 import '../Provider/objetTrouveProvider.dart';
-import '../Homepage/homePage.dart'; // Importer la HomePage
+import '../Resultpage/resultPage.dart'; // Importer la HomePage
 
 class FiltersPage extends StatefulWidget {
   @override
@@ -62,14 +62,23 @@ class _FiltersPageState extends State<FiltersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Filtres Objets Trouvés'),
-      ),
+      backgroundColor: Color.fromRGBO(12, 19, 31, 1), // Arrière-plan
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
+              // Logo centré
+              SizedBox(height: 30),
+              Center(
+                child: Image.asset(
+                  'assets/images/lookfor-logo.png', // Assurez-vous que le logo est bien dans ce chemin
+                  width: 150, // Ajustez la taille du logo
+                  height: 150,
+                ),
+              ),
+              SizedBox(height: 30), // Espacement avant les filtres
+
               // Sélection multiple pour les gares avec recherche intégrée
               _buildMultiSelectWithSearch(
                 context,
@@ -80,8 +89,8 @@ class _FiltersPageState extends State<FiltersPage> {
               ),
               SizedBox(height: 16),
 
-              // Sélection multiple pour la nature des objets
-              _buildMultiSelect(
+              // Sélection multiple pour la nature des objets avec recherche intégrée
+              _buildMultiSelectWithSearch(
                 context,
                 'Nature de l\'objet',
                 selectedNatures,
@@ -111,10 +120,18 @@ class _FiltersPageState extends State<FiltersPage> {
                         hintText: selectedDate == null
                             ? 'Aucune date sélectionnée'
                             : null,
+                        hintStyle: TextStyle(color: Colors.white), // Texte blanc
+                        labelStyle: TextStyle(color: Colors.white), // Label en blanc
                         contentPadding: EdgeInsets.symmetric(
                             vertical: 10, horizontal: 12),
-                        suffixIcon: Icon(Icons.calendar_today),
+                        suffixIcon: Icon(Icons.calendar_today, color: Colors.white),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Color.fromRGBO(121, 201, 243, 1), // Couleur du contour
+                          ),
+                        ),
                       ),
+                      style: TextStyle(color: Colors.white), // Texte blanc
                       controller: TextEditingController(
                         text: selectedDate != null
                             ? DateFormat('yyyy-MM-dd').format(selectedDate!)
@@ -126,6 +143,20 @@ class _FiltersPageState extends State<FiltersPage> {
                           initialDate: DateTime.now(),
                           firstDate: DateTime(2000),
                           lastDate: DateTime.now(),
+                          builder: (BuildContext context, Widget? child) {
+                            return Theme(
+                              data: ThemeData(
+                                colorScheme: ColorScheme.dark(
+                                  primary: Color.fromRGBO(121, 201, 243, 1), // Couleur de sélection
+                                  onPrimary: Colors.white, // Texte sur la couleur de sélection
+                                  surface: Color.fromRGBO(12, 19, 31, 1), // Couleur de fond du calendrier
+                                  onSurface: Color.fromRGBO(121, 201, 243, 1), // Texte du calendrier
+                                ),
+                                dialogBackgroundColor: Color.fromRGBO(12, 19, 31, 1), // Arrière-plan du dialogue
+                              ),
+                              child: child!,
+                            );
+                          },
                         );
                         if (picked != null) {
                           setState(() {
@@ -137,7 +168,7 @@ class _FiltersPageState extends State<FiltersPage> {
                   ),
                   if (selectedDate != null) // Si une date est sélectionnée, on affiche une croix pour réinitialiser
                     IconButton(
-                      icon: Icon(Icons.clear),
+                      icon: Icon(Icons.clear, color: Colors.white),
                       onPressed: () {
                         resetFilter('date');
                       },
@@ -161,10 +192,13 @@ class _FiltersPageState extends State<FiltersPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => HomePage(filters: {}),
+                      builder: (context) => ResultPage(filters: {}),
                     ),
                   );
                 },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white, backgroundColor: Color.fromRGBO(121, 201, 243, 1), // Couleur du texte
+                ),
                 child: Text('Rechercher'),
               ),
 
@@ -177,10 +211,13 @@ class _FiltersPageState extends State<FiltersPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => HomePage(filters: {}), // On passe un objet vide
+                      builder: (context) => ResultPage(filters: {}), // On passe un objet vide
                     ),
                   );
                 },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white, backgroundColor: Color.fromRGBO(121, 201, 243, 1), // Couleur du texte
+                ),
                 child: Text('Voir tous les objets'),
               ),
             ],
@@ -203,24 +240,29 @@ class _FiltersPageState extends State<FiltersPage> {
       children: [
         MultiSelectDialogField<String>(
           items: organizeItems(options, selectedValues),
-          title: Text(label),
+          title: Text(label, style: TextStyle(color: Colors.white)), // Texte blanc
           searchable: true,  // Ajout de la fonctionnalité de recherche intégrée
-          selectedColor: Colors.blue,
+          selectedColor: Color.fromRGBO(121, 201, 243, 1), // Couleur sélectionnée
+          selectedItemsTextStyle: TextStyle(color: Color.fromRGBO(121, 201, 243, 1)), // Couleur du texte des éléments sélectionnés
+          backgroundColor: Color.fromRGBO(12, 19, 31, 1), // Couleur de fond de la popup
+          itemsTextStyle: TextStyle(color: Colors.white), // Texte des options en blanc
+          searchHintStyle: TextStyle(color: Colors.grey), // Texte d'indication en gris pour la recherche
+          searchHint: 'Rechercher...', // Texte pour le champ de recherche
           decoration: BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(10)),
             border: Border.all(
-              color: Colors.grey,
+              color: Color.fromRGBO(121, 201, 243, 1), // Couleur de la bordure
               width: 1,
             ),
           ),
           buttonIcon: Icon(
             Icons.arrow_drop_down,
-            color: Colors.grey,
+            color: Colors.white,
           ),
           buttonText: Text(
             label,
             style: TextStyle(
-              color: Colors.grey[700],
+              color: Colors.white, // Texte blanc
               fontSize: 16,
             ),
           ),
@@ -245,6 +287,7 @@ class _FiltersPageState extends State<FiltersPage> {
                 Chip(
                   label: Text('Filtre multiple sélectionné'),
                   onDeleted: onClear,
+                  backgroundColor: Colors.white, // Texte du chip en blanc
                 )
               ]
                   : selectedValues
@@ -276,23 +319,26 @@ class _FiltersPageState extends State<FiltersPage> {
       children: [
         MultiSelectDialogField<String>(
           items: organizeItems(options, selectedValues),
-          title: Text(label),
-          selectedColor: Colors.blue,
+          title: Text(label, style: TextStyle(color: Colors.white)), // Texte blanc
+          selectedColor: Color.fromRGBO(121, 201, 243, 1), // Couleur sélectionnée
+          selectedItemsTextStyle: TextStyle(color: Color.fromRGBO(121, 201, 243, 1)), // Couleur du texte des éléments sélectionnés
+          backgroundColor: Color.fromRGBO(12, 19, 31, 1), // Couleur de fond de la popup
+          itemsTextStyle: TextStyle(color: Colors.white), // Texte des options en blanc
           decoration: BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(10)),
             border: Border.all(
-              color: Colors.grey,
+              color: Color.fromRGBO(121, 201, 243, 1), // Couleur de la bordure
               width: 1,
             ),
           ),
           buttonIcon: Icon(
             Icons.arrow_drop_down,
-            color: Colors.grey,
+            color: Colors.white,
           ),
           buttonText: Text(
             label,
             style: TextStyle(
-              color: Colors.grey[700],
+              color: Colors.white, // Texte blanc
               fontSize: 16,
             ),
           ),
@@ -317,6 +363,7 @@ class _FiltersPageState extends State<FiltersPage> {
                 Chip(
                   label: Text('Filtre multiple sélectionné'),
                   onDeleted: onClear,
+                  backgroundColor: Colors.white, // Texte du chip en blanc
                 )
               ]
                   : selectedValues
