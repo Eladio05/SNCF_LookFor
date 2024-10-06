@@ -223,7 +223,7 @@ class _FiltersPageState extends State<FiltersPage> {
               fontSize: 16,
             ),
           ),
-          initialValue: selectedValues,
+          initialValue: List.from(selectedValues),  // Assurer la mise à jour correcte de la sélection
           onConfirm: (values) {
             setState(() {
               selectedValues.clear();
@@ -239,7 +239,14 @@ class _FiltersPageState extends State<FiltersPage> {
             child: Wrap(
               spacing: 8.0,
               runSpacing: 4.0,
-              children: selectedValues
+              children: selectedValues.length > 2
+                  ? [
+                Chip(
+                  label: Text('Filtre multiple sélectionné'),
+                  onDeleted: onClear,
+                )
+              ]
+                  : selectedValues
                   .map((value) => Chip(
                 label: Text(value),
                 onDeleted: () {
