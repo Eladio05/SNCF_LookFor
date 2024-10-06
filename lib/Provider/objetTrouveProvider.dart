@@ -12,23 +12,29 @@ class ObjetsTrouvesProvider with ChangeNotifier {
   List<ObjetTrouve> get objetsTrouves => _objetsTrouves;
   bool get enChargement => _enChargement;
 
-  Future<void> recupererObjetsAvecFiltres(Map<String, String?> filters) async {
-    if (_enChargement || _finPagination) return; // Stopper si déjà en cours ou si fin de pagination
+  Future<void> recupererObjetsAvecFiltres(Map<String, String> filters) async {
+    if (_enChargement) return;
+
+    // Réinitialisation des données avant chaque nouvelle recherche
+    _objetsTrouves = [];
+    _pageActuelle = 0;
 
     _enChargement = true;
     notifyListeners();
 
     // Construction des filtres
-    String gareFilter = filters['gare'] != null && filters['gare']!.isNotEmpty
+    String gareFilter = filters['gare']!.isNotEmpty
         ? filters['gare']!.split(',').map((gare) => 'gc_obo_gare_origine_r_name%3D"$gare"').join('%20or%20')
         : '';
-    String natureFilter = filters['nature'] != null && filters['nature']!.isNotEmpty
+    String natureFilter = filters['nature']!.isNotEmpty
         ? filters['nature']!.split(',').map((nature) => 'gc_obo_nature_c%3D"$nature"').join('%20or%20')
         : '';
-    String typeFilter = filters['type'] != null && filters['type']!.isNotEmpty
+    String typeFilter = filters['type']!.isNotEmpty
         ? filters['type']!.split(',').map((type) => 'gc_obo_type_c%3D"$type"').join('%20or%20')
         : '';
-    String dateFilter = filters['date'] != null && filters['date']!.isNotEmpty
+
+    // Filtre sur la date en utilisant une plage allant de 00:00 à 23:59
+    String dateFilter = filters['date']!.isNotEmpty
         ? 'date%3E%3D"${filters['date']}T00:00:00"%20and%20date%3C%3D"${filters['date']}T23:59:59"'
         : '';
 
@@ -39,6 +45,7 @@ class ObjetsTrouvesProvider with ChangeNotifier {
     if (typeFilter.isNotEmpty) whereClauses.add('($typeFilter)');
     if (dateFilter.isNotEmpty) whereClauses.add(dateFilter);
 
+    // Les différents filtres sont combinés avec "and"
     String where = whereClauses.isNotEmpty ? '&where=${whereClauses.join('%20and%20')}' : '';
 
     var url = Uri.parse(
@@ -53,23 +60,16 @@ class ObjetsTrouvesProvider with ChangeNotifier {
       var jsonResponse = jsonDecode(response.body);
       if (jsonResponse.containsKey('results')) {
         var results = jsonResponse['results'];
-
         List<ObjetTrouve> objets = results.map<ObjetTrouve>((json) {
           return ObjetTrouve.fromJson(json);
         }).toList();
 
-        if (objets.isNotEmpty) {
-          if (_pageActuelle == 0) {
-            _objetsTrouves = objets; // Si c'est la première page, on remplace la liste
-          } else {
-            _objetsTrouves.addAll(objets); // Sinon, on ajoute à la liste
-          }
-          _pageActuelle += 1;
+        if (_pageActuelle == 0) {
+          _objetsTrouves = objets; // Si c'est la première page, on remplace la liste
         } else {
-          // Si aucun nouvel objet n'est retourné, on arrête la pagination
-          print('Aucun objet supplémentaire');
-          _finPagination = true; // Indique qu'on a atteint la fin de la pagination
+          _objetsTrouves.addAll(objets); // Sinon, on ajoute à la liste
         }
+        _pageActuelle += 1;
       }
     } else {
       print('Erreur de récupération des objets : ${response.statusCode}');
