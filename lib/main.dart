@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'Provider/objetTrouveProvider.dart'; // Importer le provider
-import 'Homepage/homePage.dart'; // Importer la page d'accueil (HomePage)
+import 'Provider/objetTrouveProvider.dart';
+import 'Filters/filterPage.dart'; // Importer la page des filtres
 
 void main() {
   runApp(
@@ -19,8 +19,9 @@ class MyApp extends StatelessWidget {
       title: 'SNCF LookFor',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        fontFamily: 'Avenir'
       ),
-      home: HomePage(), // Définit HomePage comme la page d'accueil
+      home: FiltersPage(), // Définit la page des filtres comme page d'accueil
     );
   }
 }

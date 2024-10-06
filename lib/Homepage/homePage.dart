@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../Model/objetTrouve.dart'; // Ton modèle ObjetTrouve
 import '../Provider/objetTrouveProvider.dart';
-import '../DetailsPage/detailsPage.dart'; // La nouvelle page de détails
+import '../DetailsPage/detailsPage.dart';
 
 class HomePage extends StatefulWidget {
+  final Map<String, String> filters;
+
+  HomePage({required this.filters});
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -16,7 +19,8 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ObjetsTrouvesProvider>(context, listen: false).recupererObjets();
+      Provider.of<ObjetsTrouvesProvider>(context, listen: false)
+          .recupererObjetsAvecFiltres(widget.filters);
     });
   }
 
@@ -25,37 +29,37 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: bleuCanard,
-        title: Text('SNCF LookFor'),
+        title: Text('Résultats Objets Trouvés'),
       ),
       body: Container(
         color: Colors.white,
         child: Consumer<ObjetsTrouvesProvider>(
           builder: (context, provider, child) {
-            if (provider.objetsTrouves.isEmpty && !provider.enChargement) {
+            if (provider.enChargement) {
               return Center(child: CircularProgressIndicator());
+            }
+
+            if (provider.objetsTrouves.isEmpty) {
+              return Center(child: Text('Aucun objet trouvé.'));
             }
 
             return NotificationListener<ScrollNotification>(
               onNotification: (ScrollNotification scrollInfo) {
-                if (!provider.enChargement && scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
-                  provider.recupererObjets();
+                if (!provider.enChargement &&
+                    scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
+                  provider.recupererObjetsAvecFiltres(widget.filters);
                 }
                 return false;
               },
               child: ListView.builder(
-                itemCount: provider.objetsTrouves.length + (provider.enChargement ? 1 : 0),
+                itemCount: provider.objetsTrouves.length,
                 itemBuilder: (context, index) {
-                  if (index == provider.objetsTrouves.length) {
-                    return Center(child: CircularProgressIndicator());
-                  }
-
                   var objet = provider.objetsTrouves[index];
 
                   return ListTile(
                     title: Text(objet.nature),
                     subtitle: Text(objet.gareOrigine),
                     onTap: () {
-                      // Naviguer vers la page de détails en passant l'objet trouvé
                       Navigator.push(
                         context,
                         MaterialPageRoute(
