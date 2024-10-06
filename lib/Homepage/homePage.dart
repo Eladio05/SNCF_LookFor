@@ -35,25 +35,38 @@ class _HomePageState extends State<HomePage> {
         color: Colors.white,
         child: Consumer<ObjetsTrouvesProvider>(
           builder: (context, provider, child) {
-            if (provider.enChargement) {
+            if (provider.enChargement && provider.objetsTrouves.isEmpty) {
               return Center(child: CircularProgressIndicator());
             }
 
-            if (provider.objetsTrouves.isEmpty) {
+            if (provider.objetsTrouves.isEmpty && !provider.enChargement) {
               return Center(child: Text('Aucun objet trouvé.'));
             }
 
             return NotificationListener<ScrollNotification>(
               onNotification: (ScrollNotification scrollInfo) {
                 if (!provider.enChargement &&
+                    !provider.finPagination && // Vérifie la fin de pagination
                     scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
+
                   provider.recupererObjetsAvecFiltres(widget.filters);
                 }
                 return false;
               },
               child: ListView.builder(
-                itemCount: provider.objetsTrouves.length,
+                itemCount: provider.objetsTrouves.length +
+                    (provider.enChargement ? 1 : 0), // Ajouter un espace pour le loader si en chargement
                 itemBuilder: (context, index) {
+                  if (index == provider.objetsTrouves.length) {
+                    // Affiche un indicateur de chargement à la fin de la liste
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+
                   var objet = provider.objetsTrouves[index];
 
                   return ListTile(

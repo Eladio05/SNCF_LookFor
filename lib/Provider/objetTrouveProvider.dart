@@ -1,58 +1,71 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import '../Model/objetTrouve.dart';
 
 class ObjetsTrouvesProvider with ChangeNotifier {
   List<ObjetTrouve> _objetsTrouves = [];
   bool _enChargement = false;
   int _pageActuelle = 0;
-  bool _finPagination = false; // Ajout pour savoir si la pagination est terminée
+  bool _finPagination = false; // To indicate when pagination has ended
 
   List<ObjetTrouve> get objetsTrouves => _objetsTrouves;
   bool get enChargement => _enChargement;
+  bool get finPagination => _finPagination; // Getter pour finPagination
+
+  // Liste des filtres sélectionnés
+  List<String> selectedGares = [];
+  List<String> selectedNatures = [];
+  List<String> selectedTypes = [];
+  DateTime? selectedDate;
 
   Future<void> recupererObjetsAvecFiltres(Map<String, String> filters) async {
-    if (_enChargement) return;
-
-    // Réinitialisation des données avant chaque nouvelle recherche
-    _objetsTrouves = [];
-    _pageActuelle = 0;
+    if (_enChargement || _finPagination) return; // Si déjà en chargement ou pagination finie, on ne continue pas
 
     _enChargement = true;
     notifyListeners();
 
-    // Construction des filtres
-    String gareFilter = filters['gare']!.isNotEmpty
-        ? filters['gare']!.split(',').map((gare) => 'gc_obo_gare_origine_r_name%3D"$gare"').join('%20or%20')
-        : '';
-    String natureFilter = filters['nature']!.isNotEmpty
-        ? filters['nature']!.split(',').map((nature) => 'gc_obo_nature_c%3D"$nature"').join('%20or%20')
-        : '';
-    String typeFilter = filters['type']!.isNotEmpty
-        ? filters['type']!.split(',').map((type) => 'gc_obo_type_c%3D"$type"').join('%20or%20')
+    // Encodage des valeurs des filtres
+    String encodeQuery(String value) {
+      return Uri.encodeComponent(value);
+    }
+
+    // Construction du filtre pour la gare
+    String gareFilter = selectedGares.isNotEmpty
+        ? 'gc_obo_gare_origine_r_name:("${selectedGares.map(encodeQuery).join('" or "')}")'
         : '';
 
-    // Filtre sur la date en utilisant une plage allant de 00:00 à 23:59
-    String dateFilter = filters['date']!.isNotEmpty
-        ? 'date%3E%3D"${filters['date']}T00:00:00"%20and%20date%3C%3D"${filters['date']}T23:59:59"'
+    // Construction du filtre pour la nature
+    String natureFilter = selectedNatures.isNotEmpty
+        ? 'gc_obo_nature_c:("${selectedNatures.map(encodeQuery).join('" or "')}")'
         : '';
 
-    // Construction de la chaîne WHERE en combinant les filtres avec l'option OR et AND
+    // Construction du filtre pour le type
+    String typeFilter = selectedTypes.isNotEmpty
+        ? 'gc_obo_type_c:("${selectedTypes.map(encodeQuery).join('" or "')}")'
+        : '';
+
+    // Construction du filtre de date si nécessaire
+    String dateFilter = selectedDate != null
+        ? 'date>=:"${encodeQuery(DateFormat('yyyy-MM-dd').format(selectedDate!))}T00:00:00" and date<=:"${encodeQuery(DateFormat('yyyy-MM-dd').format(selectedDate!))}T23:59:59"'
+        : '';
+
+    // Combine les clauses WHERE
     List<String> whereClauses = [];
-    if (gareFilter.isNotEmpty) whereClauses.add('($gareFilter)');
-    if (natureFilter.isNotEmpty) whereClauses.add('($natureFilter)');
-    if (typeFilter.isNotEmpty) whereClauses.add('($typeFilter)');
+    if (gareFilter.isNotEmpty) whereClauses.add(gareFilter);
+    if (natureFilter.isNotEmpty) whereClauses.add(natureFilter);
+    if (typeFilter.isNotEmpty) whereClauses.add(typeFilter);
     if (dateFilter.isNotEmpty) whereClauses.add(dateFilter);
 
-    // Les différents filtres sont combinés avec "and"
-    String where = whereClauses.isNotEmpty ? '&where=${whereClauses.join('%20and%20')}' : '';
+    // Combine le tout avec `and` pour séparer les différents filtres
+    String where = whereClauses.isNotEmpty ? '&where=${whereClauses.join(' and ')}' : '';
 
     var url = Uri.parse(
         'https://data.sncf.com/api/explore/v2.1/catalog/datasets/objets-trouves-restitution/records?limit=100&offset=${_pageActuelle * 100}$where'
     );
 
-    print('Requête URL : $url'); // Ajoutez ce log pour inspecter l'URL générée
+    print('Requête URL : $url'); // Log pour inspecter l'URL générée
 
     final response = await http.get(url);
 
@@ -64,12 +77,20 @@ class ObjetsTrouvesProvider with ChangeNotifier {
           return ObjetTrouve.fromJson(json);
         }).toList();
 
-        if (_pageActuelle == 0) {
-          _objetsTrouves = objets; // Si c'est la première page, on remplace la liste
+        if (objets.isEmpty) {
+          _finPagination = true;
+          print('Fin de la pagination');
         } else {
-          _objetsTrouves.addAll(objets); // Sinon, on ajoute à la liste
+          if (_pageActuelle == 0) {
+            _objetsTrouves = objets; // Remplacer la liste pour la première page
+          } else {
+            _objetsTrouves.addAll(objets); // Ajouter à la liste pour les pages suivantes
+          }
+          _pageActuelle += 1;
         }
-        _pageActuelle += 1;
+      } else {
+        _finPagination = true;
+        print('Pas de résultats, fin de la pagination');
       }
     } else {
       print('Erreur de récupération des objets : ${response.statusCode}');
@@ -79,7 +100,7 @@ class ObjetsTrouvesProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Méthode pour réinitialiser la pagination et les objets (appelée lors d'une nouvelle recherche)
+  // Method to reset pagination and objects (called when starting a new search)
   void reinitialiserPagination() {
     _pageActuelle = 0;
     _finPagination = false;
@@ -87,7 +108,7 @@ class ObjetsTrouvesProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Méthode pour récupérer les options distinctes (gares, types, etc.) avec pagination et tri par ordre alphabétique, et filtrage des valeurs nulles
+  // Method to retrieve distinct options (stations, types, etc.) with pagination and sorting
   Future<List<String>> getDistinctOptions(String field) async {
     List<String> options = [];
     int offset = 0;
@@ -96,8 +117,8 @@ class ObjetsTrouvesProvider with ChangeNotifier {
     String baseUrl =
         'https://data.sncf.com/api/explore/v2.1/catalog/datasets/objets-trouves-restitution/records?select=$field&group_by=$field&limit=100&offset=';
 
-    // Ajout du where pour filtrer les valeurs nulles
-    String whereClause = 'where=$field%20is%20not%20null';
+    // Add 'where' clause to filter out null values
+    String whereClause = 'where=$field is not null';
 
     while (continuer) {
       var url = Uri.parse(baseUrl + '$offset&order_by=$field&$whereClause');
@@ -107,13 +128,12 @@ class ObjetsTrouvesProvider with ChangeNotifier {
 
       if (response.statusCode == 200) {
         var jsonResponse = jsonDecode(response.body);
-        print('Réponse complète de l\'API : $jsonResponse'); // Afficher toute la réponse de l'API
+        print('Réponse complète de l\'API : $jsonResponse'); // Log the full API response
 
         if (jsonResponse != null && jsonResponse.containsKey('results')) {
           var results = jsonResponse['results'];
 
           if (results != null && results.isNotEmpty) {
-            // Ajoute seulement les options valides qui ont la clé et ne sont pas nulles
             List<String> newOptions = results.where((json) =>
             json['gc_obo_gare_origine_r_name'] != null ||
                 json['gc_obo_nature_c'] != null ||
@@ -128,14 +148,13 @@ class ObjetsTrouvesProvider with ChangeNotifier {
               }
             }).toList();
 
-            // Ajout à la liste complète des options
             options.addAll(newOptions);
-            offset += 100; // Incrémentation de l'offset pour la pagination
+            offset += 100; // Increment offset for pagination
           } else {
-            continuer = false; // Arrêter la boucle si aucun résultat supplémentaire
+            continuer = false; // Stop the loop if no more results
           }
         } else {
-          continuer = false; // Si les résultats sont vides
+          continuer = false; // Stop if results are empty
         }
       } else {
         print('Erreur de récupération des filtres : ${response.statusCode}');
@@ -143,7 +162,28 @@ class ObjetsTrouvesProvider with ChangeNotifier {
       }
     }
 
-    print('Options récupérées pour $field : $options'); // Vérification finale des options collectées
+    print('Options récupérées pour $field : $options'); // Final check of collected options
     return options;
+  }
+
+  // Méthodes pour mettre à jour les filtres sélectionnés
+  void updateSelectedGares(List<String> gares) {
+    selectedGares = gares;
+    notifyListeners();
+  }
+
+  void updateSelectedNatures(List<String> natures) {
+    selectedNatures = natures;
+    notifyListeners();
+  }
+
+  void updateSelectedTypes(List<String> types) {
+    selectedTypes = types;
+    notifyListeners();
+  }
+
+  void updateSelectedDate(DateTime? date) {
+    selectedDate = date;
+    notifyListeners();
   }
 }

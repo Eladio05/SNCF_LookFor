@@ -149,23 +149,19 @@ class _FiltersPageState extends State<FiltersPage> {
               // Bouton Rechercher
               ElevatedButton(
                 onPressed: () {
+                  // Mettre à jour les filtres sélectionnés dans le provider
+                  var provider = Provider.of<ObjetsTrouvesProvider>(context, listen: false);
+                  provider.updateSelectedGares(selectedGares);
+                  provider.updateSelectedNatures(selectedNatures);
+                  provider.updateSelectedTypes(selectedTypes);
+                  provider.updateSelectedDate(selectedDate);
+
+                  // Appeler reinitialiserPagination ici avant la recherche
+                  provider.reinitialiserPagination();
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => HomePage(filters: {
-                        'gare': selectedGares.isNotEmpty
-                            ? selectedGares.join(',')
-                            : '',
-                        'nature': selectedNatures.isNotEmpty
-                            ? selectedNatures.join(',')
-                            : '',
-                        'type': selectedTypes.isNotEmpty
-                            ? selectedTypes.join(',')
-                            : '',
-                        'date': selectedDate != null
-                            ? DateFormat('yyyy-MM-dd').format(selectedDate!)
-                            : '',
-                      }),
+                      builder: (context) => HomePage(filters: {},),
                     ),
                   );
                 },
@@ -173,18 +169,21 @@ class _FiltersPageState extends State<FiltersPage> {
               ),
 
               // Bouton Voir tous les objets
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => HomePage(filters: {}), // On passe un objet vide
-                  ),
-                );
-              },
-              child: Text('Voir tous les objets'),
-            ),
-          ],
+              ElevatedButton(
+                onPressed: () {
+                  // Réinitialisation des filtres avant de voir tous les objets
+                  var provider = Provider.of<ObjetsTrouvesProvider>(context, listen: false);
+                  provider.reinitialiserPagination();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HomePage(filters: {}), // On passe un objet vide
+                    ),
+                  );
+                },
+                child: Text('Voir tous les objets'),
+              ),
+            ],
           ),
         ),
       ),
@@ -237,9 +236,7 @@ class _FiltersPageState extends State<FiltersPage> {
         if (selectedValues.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
-            child: selectedValues.length > 2
-                ? Chip(label: Text('Filtre multiple sélectionné'))
-                : Wrap(
+            child: Wrap(
               spacing: 8.0,
               runSpacing: 4.0,
               children: selectedValues
