@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart'; // Pour formater les dates
 import '../Model/objetTrouve.dart';
 
 class ObjetsTrouvesProvider with ChangeNotifier {
@@ -46,9 +46,9 @@ class ObjetsTrouvesProvider with ChangeNotifier {
         ? 'gc_obo_type_c:("${selectedTypes.map(encodeQuery).join('" or "')}")'
         : '';
 
-    // Construction du filtre de date si nécessaire
+    // Construction du filtre de date si nécessaire avec le format "yyyy-MM-dd"
     String dateFilter = selectedDate != null
-        ? 'date>=:"${encodeQuery(DateFormat('yyyy-MM-dd').format(selectedDate!))}T00:00:00" and date<=:"${encodeQuery(DateFormat('yyyy-MM-dd').format(selectedDate!))}T23:59:59"'
+        ? 'date%3E%3D"${DateFormat('yyyy-MM-dd').format(selectedDate!)}T00:00:00"%20and%20date%3C%3D"${DateFormat('yyyy-MM-dd').format(selectedDate!)}T23:59:59"'
         : '';
 
     // Combine les clauses WHERE
@@ -108,7 +108,7 @@ class ObjetsTrouvesProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Method to retrieve distinct options (stations, types, etc.) with pagination and sorting
+  // Ajout de la méthode getDistinctOptions pour récupérer les options uniques
   Future<List<String>> getDistinctOptions(String field) async {
     List<String> options = [];
     int offset = 0;
@@ -117,7 +117,7 @@ class ObjetsTrouvesProvider with ChangeNotifier {
     String baseUrl =
         'https://data.sncf.com/api/explore/v2.1/catalog/datasets/objets-trouves-restitution/records?select=$field&group_by=$field&limit=100&offset=';
 
-    // Add 'where' clause to filter out null values
+    // Ajouter une clause WHERE pour filtrer les valeurs nulles
     String whereClause = 'where=$field is not null';
 
     while (continuer) {
@@ -128,7 +128,6 @@ class ObjetsTrouvesProvider with ChangeNotifier {
 
       if (response.statusCode == 200) {
         var jsonResponse = jsonDecode(response.body);
-        print('Réponse complète de l\'API : $jsonResponse'); // Log the full API response
 
         if (jsonResponse != null && jsonResponse.containsKey('results')) {
           var results = jsonResponse['results'];
@@ -149,12 +148,12 @@ class ObjetsTrouvesProvider with ChangeNotifier {
             }).toList();
 
             options.addAll(newOptions);
-            offset += 100; // Increment offset for pagination
+            offset += 100; // Incrémenter l'offset pour la pagination
           } else {
-            continuer = false; // Stop the loop if no more results
+            continuer = false; // Arrêter la boucle si aucun résultat
           }
         } else {
-          continuer = false; // Stop if results are empty
+          continuer = false; // Arrêter si pas de résultats
         }
       } else {
         print('Erreur de récupération des filtres : ${response.statusCode}');
@@ -162,7 +161,7 @@ class ObjetsTrouvesProvider with ChangeNotifier {
       }
     }
 
-    print('Options récupérées pour $field : $options'); // Final check of collected options
+    print('Options récupérées pour $field : $options'); // Vérifier les options récupérées
     return options;
   }
 
