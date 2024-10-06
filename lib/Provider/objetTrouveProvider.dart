@@ -11,21 +11,41 @@ class ObjetsTrouvesProvider with ChangeNotifier {
   List<ObjetTrouve> get objetsTrouves => _objetsTrouves;
   bool get enChargement => _enChargement;
 
-  // Méthode pour récupérer les objets trouvés avec pagination et filtres
   Future<void> recupererObjetsAvecFiltres(Map<String, String> filters) async {
     if (_enChargement) return;
 
     _enChargement = true;
     notifyListeners();
 
-    String gareFilter = filters['gare']!.isNotEmpty ? '&gc_obo_gare_origine_r_name=${filters['gare']}' : '';
-    String natureFilter = filters['nature']!.isNotEmpty ? '&gc_obo_nature_c=${filters['nature']}' : '';
-    String typeFilter = filters['type']!.isNotEmpty ? '&gc_obo_type_c=${filters['type']}' : '';
-    String dateFilter = filters['date']!.isNotEmpty ? '&date=${filters['date']}' : ''; // Ajout du filtre de date
+    // Construction des filtres avec un encodage URL correct
+    String gareFilter = filters['gare']!.isNotEmpty
+        ? filters['gare']!.split(',').map((gare) => 'gc_obo_gare_origine_r_name%3D"$gare"').join('%20or%20')
+        : '';
+    String natureFilter = filters['nature']!.isNotEmpty
+        ? filters['nature']!.split(',').map((nature) => 'gc_obo_nature_c%3D"$nature"').join('%20or%20')
+        : '';
+    String typeFilter = filters['type']!.isNotEmpty
+        ? filters['type']!.split(',').map((type) => 'gc_obo_type_c%3D"$type"').join('%20or%20')
+        : '';
+    String dateFilter = filters['date']!.isNotEmpty
+        ? 'date%3D"${filters['date']}"'
+        : '';
+
+    // Construction de la chaîne WHERE en combinant les filtres avec l'option OR et AND
+    List<String> whereClauses = [];
+    if (gareFilter.isNotEmpty) whereClauses.add('($gareFilter)');
+    if (natureFilter.isNotEmpty) whereClauses.add('($natureFilter)');
+    if (typeFilter.isNotEmpty) whereClauses.add('($typeFilter)');
+    if (dateFilter.isNotEmpty) whereClauses.add(dateFilter);
+
+    // Les différents filtres sont combinés avec "and"
+    String where = whereClauses.isNotEmpty ? '&where=${whereClauses.join('%20and%20')}' : '';
 
     var url = Uri.parse(
-        'https://data.sncf.com/api/explore/v2.1/catalog/datasets/objets-trouves-restitution/records?limit=100&offset=${_pageActuelle * 100}$gareFilter$natureFilter$typeFilter$dateFilter'
+        'https://data.sncf.com/api/explore/v2.1/catalog/datasets/objets-trouves-restitution/records?limit=100&offset=${_pageActuelle * 100}$where'
     );
+
+    print('Requête URL : $url'); // Log de l'URL générée
 
     final response = await http.get(url);
 
@@ -51,6 +71,7 @@ class ObjetsTrouvesProvider with ChangeNotifier {
     _enChargement = false;
     notifyListeners();
   }
+
 
 
   // Méthode pour récupérer les options distinctes (gares, types, etc.) avec pagination et tri par ordre alphabétique, et filtrage des valeurs nulles
