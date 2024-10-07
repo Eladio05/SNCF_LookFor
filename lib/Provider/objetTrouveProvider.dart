@@ -165,6 +165,56 @@ class ObjetsTrouvesProvider with ChangeNotifier {
     return options;
   }
 
+  Future<void> recupererObjetsDepuisDerniereConnexion(DateTime derniereConnexion) async {
+    if (_enChargement || _finPagination) return;
+
+    _enChargement = true;
+    notifyListeners();
+
+    String formattedDate = DateFormat('yyyy-MM-dd').format(derniereConnexion);
+
+    // Requête pour récupérer les objets trouvés après la date de la dernière connexion
+    String dateFilter = 'date%3E%3D"${formattedDate}T00:00:00"';
+
+    var url = Uri.parse(
+        'https://data.sncf.com/api/explore/v2.1/catalog/datasets/objets-trouves-restitution/records?limit=100&offset=${_pageActuelle * 100}&where=$dateFilter'
+    );
+
+    print('Requête URL pour les nouveaux objets : $url');
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      var jsonResponse = jsonDecode(response.body);
+      if (jsonResponse.containsKey('results')) {
+        var results = jsonResponse['results'];
+        List<ObjetTrouve> objets = results.map<ObjetTrouve>((json) {
+          return ObjetTrouve.fromJson(json);
+        }).toList();
+
+        if (objets.isEmpty) {
+          _finPagination = true;
+          print('Fin de la pagination');
+        } else {
+          if (_pageActuelle == 0) {
+            _objetsTrouves = objets; // Remplacer la liste pour la première page
+          } else {
+            _objetsTrouves.addAll(objets); // Ajouter à la liste pour les pages suivantes
+          }
+          _pageActuelle += 1;
+        }
+      } else {
+        _finPagination = true;
+        print('Pas de résultats, fin de la pagination');
+      }
+    } else {
+      print('Erreur de récupération des nouveaux objets : ${response.statusCode}');
+    }
+
+    _enChargement = false;
+    notifyListeners();
+  }
+
   // Méthodes pour mettre à jour les filtres sélectionnés
   void updateSelectedGares(List<String> gares) {
     selectedGares = gares;
