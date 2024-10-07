@@ -98,10 +98,10 @@ class _FiltersPageState extends State<FiltersPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Color.fromRGBO(12, 19, 31, 1), // Arrière-plan
-        appBar: AppBar(
-          backgroundColor: Color.fromRGBO(12, 19, 31, 1), // Même couleur que l'arrière-plan
-        ),
+      backgroundColor: Color.fromRGBO(12, 19, 31, 1), // Arrière-plan
+      appBar: AppBar(
+        backgroundColor: Color.fromRGBO(12, 19, 31, 1), // Même couleur que l'arrière-plan
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.only(left: 16.0, right: 16.0), // Ajustement du padding pour positionner le logo plus haut
@@ -115,108 +115,106 @@ class _FiltersPageState extends State<FiltersPage> with WidgetsBindingObserver {
                   height: 150,
                 ),
               ),
-              // Espacement avant les filtres
-// Espacement réduit après le logo
+              SizedBox(height: 16), // Espacement réduit après le logo
 
-            // Sélection multiple pour les gares avec recherche intégrée
-            _buildMultiSelect(
-              context,
-              'Gare d\'origine',
-              selectedGares,
-              gares,
-                  () => resetFilter('gare'),
-            ),
-            SizedBox(height: 16),
+              // Sélection multiple pour les gares avec recherche intégrée
+              _buildMultiSelect(
+                context,
+                'Gare d\'origine',
+                selectedGares,
+                gares,
+                    () => resetFilter('gare'),
+              ),
+              SizedBox(height: 16),
 
-            // Sélection multiple pour la nature des objets avec recherche intégrée
-            _buildMultiSelect(
-              context,
-              'Nature de l\'objet',
-              selectedNatures,
-              natures,
-                  () => resetFilter('nature'),
-            ),
-            SizedBox(height: 16),
+              // Sélection multiple pour la nature des objets avec recherche intégrée
+              _buildMultiSelect(
+                context,
+                'Nature de l\'objet',
+                selectedNatures,
+                natures,
+                    () => resetFilter('nature'),
+              ),
+              SizedBox(height: 16),
 
-            // Sélection multiple pour le type des objets
-            _buildMultiSelect(
-              context,
-              'Type d\'objet',
-              selectedTypes,
-              types,
-                  () => resetFilter('type'),
-            ),
-            SizedBox(height: 16),
+              // Sélection multiple pour le type des objets
+              _buildMultiSelect(
+                context,
+                'Type d\'objet',
+                selectedTypes,
+                types,
+                    () => resetFilter('type'),
+              ),
+              SizedBox(height: 16),
 
-            // Sélection de la date avec la croix pour réinitialiser
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      labelText: 'Sélectionner une date',
-                      hintText: selectedDate == null
-                          ? 'Aucune date sélectionnée'
-                          : null,
-                      hintStyle: TextStyle(color: Colors.white), // Texte blanc
-                      labelStyle: TextStyle(color: Colors.white), // Label en blanc
-                      contentPadding: EdgeInsets.symmetric(
-                          vertical: 10, horizontal: 12),
-                      suffixIcon: Icon(Icons.calendar_today, color: Colors.white),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Color.fromRGBO(121, 201, 243, 1), // Couleur du contour
+              // Sélection de la date avec la croix pour réinitialiser
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        labelText: 'Sélectionner une date',
+                        hintText: selectedDate == null
+                            ? 'Aucune date sélectionnée'
+                            : null,
+                        hintStyle: TextStyle(color: Colors.white), // Texte blanc
+                        labelStyle: TextStyle(color: Colors.white), // Label en blanc
+                        contentPadding: EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 12),
+                        suffixIcon: Icon(Icons.calendar_today, color: Colors.white),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Color.fromRGBO(121, 201, 243, 1), // Couleur du contour
+                          ),
                         ),
                       ),
-                    ),
-                    style: TextStyle(color: Colors.white), // Texte blanc
-                    controller: TextEditingController(
-                      text: selectedDate != null
-                          ? DateFormat('yyyy-MM-dd').format(selectedDate!)
-                          : '',
-                    ),
-                    onTap: () async {
-                      DateTime? picked = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime.now(),
-                        builder: (context, child) {
-                          return Theme(
-                            data: Theme.of(context).copyWith(
-                              colorScheme: ColorScheme.dark(
-                                primary: Color.fromRGBO(121, 201, 243, 1), // Couleur du texte (sélection)
-                                onPrimary: Colors.white, // Texte sur le bouton de sélection
-                                surface: Color.fromRGBO(12, 19, 31, 1), // Arrière-plan du calendrier
-                                onSurface: Colors.white, // Couleur du texte (jours)
+                      style: TextStyle(color: Colors.white), // Texte blanc
+                      controller: TextEditingController(
+                        text: selectedDate != null
+                            ? DateFormat('yyyy-MM-dd').format(selectedDate!)
+                            : '',
+                      ),
+                      onTap: () async {
+                        DateTime? picked = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime.now(),
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: ColorScheme.dark(
+                                  primary: Color.fromRGBO(121, 201, 243, 1), // Couleur du texte (sélection)
+                                  onPrimary: Colors.white, // Texte sur le bouton de sélection
+                                  surface: Color.fromRGBO(12, 19, 31, 1), // Arrière-plan du calendrier
+                                  onSurface: Colors.white, // Couleur du texte (jours)
+                                ),
+                                dialogBackgroundColor: Color.fromRGBO(12, 19, 31, 1), // Arrière-plan du calendrier
                               ),
-                              dialogBackgroundColor: Color.fromRGBO(12, 19, 31, 1), // Arrière-plan du calendrier
-                            ),
-                            child: child!,
-                          );
-                        },
-                      );
-                      if (picked != null) {
-                        setState(() {
-                          selectedDate = picked;
-                        });
-                      }
-                    },
+                              child: child!,
+                            );
+                          },
+                        );
+                        if (picked != null) {
+                          setState(() {
+                            selectedDate = picked;
+                          });
+                        }
+                      },
+                    ),
                   ),
-                ),
-                if (selectedDate != null) // Si une date est sélectionnée, on affiche une croix pour réinitialiser
-                  IconButton(
-                    icon: Icon(Icons.clear, color: Colors.white),
-                    onPressed: () {
-                      resetFilter('date');
-                    },
-                  ),
-              ],
-            ),
-            SizedBox(height: 20),
+                  if (selectedDate != null) // Si une date est sélectionnée, on affiche une croix pour réinitialiser
+                    IconButton(
+                      icon: Icon(Icons.clear, color: Colors.white),
+                      onPressed: () {
+                        resetFilter('date');
+                      },
+                    ),
+                ],
+              ),
+              SizedBox(height: 20),
 
-            // Boutons "Rechercher" et "Voir tous les objets" sur la même ligne
               // Boutons "Rechercher" et "Voir tous les objets" sur la même ligne
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -269,18 +267,19 @@ class _FiltersPageState extends State<FiltersPage> with WidgetsBindingObserver {
                 ],
               ),
               SizedBox(height: 10), // Réduction de l'espacement entre les boutons et le bouton suivant
-// Bouton "Rechercher les nouveaux objets"
+
+              // Bouton "Rechercher les nouveaux objets"
               ElevatedButton(
                 onPressed: () async {
                   // Récupérer la date de la dernière connexion
                   SharedPreferences prefs = await SharedPreferences.getInstance();
-                  String? lastConnectionDateStr = prefs.getString('derniereConnexion');
+                  String? lastConnectionDateStr = prefs.getString('lastLoginDate'); // Assurez-vous d'utiliser la bonne clé ici
                   if (lastConnectionDateStr != null) {
                     DateTime derniereConnexion = DateTime.parse(lastConnectionDateStr);
 
                     var provider = Provider.of<ObjetsTrouvesProvider>(context, listen: false);
                     // Rechercher les objets trouvés après la dernière connexion
-                    provider.reinitialiserPagination();
+                    provider.reinitialiserPagination(); // Réinitialisation de la pagination avant la recherche
                     await provider.recupererObjetsDepuisDerniereConnexion(derniereConnexion);
 
                     // Naviguer vers la page de résultats avec les objets trouvés
@@ -304,45 +303,10 @@ class _FiltersPageState extends State<FiltersPage> with WidgetsBindingObserver {
                 child: Text('Rechercher les nouveaux objets'),
               ),
               SizedBox(height: 20), // Espacement avant le nouveau bouton
-
-                    // Bouton "Rechercher les nouveaux objets"
-                    ElevatedButton(
-                      onPressed: () async {
-                        // Récupérer la date de la dernière connexion
-                        SharedPreferences prefs = await SharedPreferences.getInstance();
-                        String? lastConnectionDateStr = prefs.getString('derniereConnexion');
-                        if (lastConnectionDateStr != null) {
-                          DateTime derniereConnexion = DateTime.parse(lastConnectionDateStr);
-
-                          var provider = Provider.of<ObjetsTrouvesProvider>(context, listen: false);
-                          // Rechercher les objets trouvés après la dernière connexion
-                          provider.reinitialiserPagination();
-                          await provider.recupererObjetsDepuisDerniereConnexion(derniereConnexion);
-
-                          // Naviguer vers la page de résultats avec les objets trouvés
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ResultPage(filters: {}),
-                            ),
-                          );
-                        } else {
-                          // Si aucune connexion précédente n'est enregistrée, afficher un message
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Aucune date de dernière connexion trouvée.'))
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Color.fromRGBO(121, 201, 243, 1),
-                      ),
-                      child: Text('Rechercher les nouveaux objets'),
-                    ),
-                  ],
-              ),
-            ),
+            ],
+          ),
         ),
+      ),
     );
   }
 
