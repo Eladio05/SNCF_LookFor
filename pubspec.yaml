@@ -26,7 +26,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/lookfor-logo.png
+    - assets/images/
   fonts:
     - family: Avenir
       fonts:
