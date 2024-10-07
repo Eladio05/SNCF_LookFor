@@ -47,17 +47,17 @@ class _DetailPageState extends State<DetailPage> {
         case "Optique":
           return 'assets/images/lunette.png';
         case "Parapluies":
-          return 'assets/images/umbrella.png';
+          return 'assets/images/parapluie.png';
         case "Pièces d'identités et papiers personnels":
-          return 'assets/images/id.png';
+          return 'assets/images/carte_identite.png';
         case "Porte-monnaie / portefeuille, argent, titres":
-          return 'assets/images/wallet.png';
+          return 'assets/images/porte_monnaie.png';
         case "Vélos, trottinettes, accessoires 2 roues":
-          return 'assets/images/bike.png';
+          return 'assets/images/velo.png';
         case "Vêtements, chaussures":
-          return 'assets/images/clothes.png';
+          return 'assets/images/vetement.png';
         default:
-          return 'assets/images/default.png'; // Image par défaut
+          return 'assets/images/defaut.png'; // Image par défaut
       }
     }
 

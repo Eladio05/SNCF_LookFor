@@ -46,9 +46,9 @@ class ObjetsTrouvesProvider with ChangeNotifier {
         ? 'gc_obo_type_c:("${selectedTypes.map(encodeQuery).join('" or "')}")'
         : '';
 
-    // Construction du filtre de date si nécessaire avec le format "yyyy-MM-dd"
-    String dateFilter = selectedDate != null
-        ? 'date%3E%3D"${DateFormat('yyyy-MM-dd').format(selectedDate!)}T00:00:00"%20and%20date%3C%3D"${DateFormat('yyyy-MM-dd').format(selectedDate!)}T23:59:59"'
+    // Filtre sur la date en utilisant une plage allant de 00:00 à 23:59
+    String dateFilter = filters['date']?.isNotEmpty == true
+        ? 'date%20%3E%3D%20%27${filters['date']}%2000%3A00%3A00%27%20AND%20date%20%3C%3D%20%27${filters['date']}%2023%3A59%3A59%27'
         : '';
 
     // Combine les clauses WHERE
@@ -133,18 +133,8 @@ class ObjetsTrouvesProvider with ChangeNotifier {
           var results = jsonResponse['results'];
 
           if (results != null && results.isNotEmpty) {
-            List<String> newOptions = results.where((json) =>
-            json['gc_obo_gare_origine_r_name'] != null ||
-                json['gc_obo_nature_c'] != null ||
-                json['gc_obo_type_c'] != null
-            ).map<String>((json) {
-              if (field == 'gc_obo_gare_origine_r_name') {
-                return json['gc_obo_gare_origine_r_name'].toString();
-              } else if (field == 'gc_obo_nature_c') {
-                return json['gc_obo_nature_c'].toString();
-              } else {
-                return json['gc_obo_type_c'].toString();
-              }
+            List<String> newOptions = results.map<String>((json) {
+              return json[field].toString();
             }).toList();
 
             options.addAll(newOptions);
@@ -174,7 +164,7 @@ class ObjetsTrouvesProvider with ChangeNotifier {
     String formattedDate = DateFormat('yyyy-MM-dd').format(derniereConnexion);
 
     // Requête pour récupérer les objets trouvés après la date de la dernière connexion
-    String dateFilter = 'date%3E%3D"${formattedDate}T00:00:00"';
+    String dateFilter = 'date%3E%3D"${formattedDate}T00:00:00"%20and%20date%3C%3D"${formattedDate}T23:59:59"';
 
     var url = Uri.parse(
         'https://data.sncf.com/api/explore/v2.1/catalog/datasets/objets-trouves-restitution/records?limit=100&offset=${_pageActuelle * 100}&where=$dateFilter'
