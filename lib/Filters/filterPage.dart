@@ -290,7 +290,14 @@ class _FiltersPageState extends State<FiltersPage> with WidgetsBindingObserver {
                       onPressed: () {
                         // Réinitialisation des filtres avant de voir tous les objets
                         var provider = Provider.of<ObjetsTrouvesProvider>(context, listen: false);
+
+                        // Réinitialiser la pagination
                         provider.reinitialiserPagination();
+
+                        // Appeler la méthode pour récupérer les objets sans filtre (tous les objets)
+                        provider.recupererObjetsAvecFiltres({}); // Passer un objet vide pour n'appliquer aucun filtre
+
+                        // Naviguer vers la page de résultats
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -299,7 +306,8 @@ class _FiltersPageState extends State<FiltersPage> with WidgetsBindingObserver {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white, backgroundColor: Color.fromRGBO(121, 201, 243, 1),
+                        foregroundColor: Colors.white,
+                        backgroundColor: Color.fromRGBO(121, 201, 243, 1),
                       ),
                       child: Text('Voir tous les objets'),
                     ),
@@ -309,28 +317,30 @@ class _FiltersPageState extends State<FiltersPage> with WidgetsBindingObserver {
               SizedBox(height: 10), // Réduction de l'espacement entre les boutons et le bouton suivant
 
               // Bouton "Rechercher les nouveaux objets"
+              // Bouton "Rechercher les nouveaux objets"
               ElevatedButton(
                 onPressed: () async {
                   // Récupérer la date de la dernière connexion
                   SharedPreferences prefs = await SharedPreferences.getInstance();
-                  String? lastConnectionDateStr = prefs.getString('lastLoginDate'); // Assurez-vous d'utiliser la bonne clé ici
+                  String? lastConnectionDateStr = prefs.getString('lastLoginDate');
                   if (lastConnectionDateStr != null) {
                     DateTime derniereConnexion = DateTime.parse(lastConnectionDateStr);
 
                     var provider = Provider.of<ObjetsTrouvesProvider>(context, listen: false);
-                    // Rechercher les objets trouvés après la dernière connexion
-                    provider.reinitialiserPagination(); // Réinitialisation de la pagination avant la recherche
+
+                    // Réinitialisation de la pagination et recherche des objets filtrés uniquement par date
+                    provider.reinitialiserPagination();
                     await provider.recupererObjetsDepuisDerniereConnexion(derniereConnexion);
 
                     // Naviguer vers la page de résultats avec les objets trouvés
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ResultPage(filters: {}), // Rediriger vers la page de résultats
+                        builder: (context) => ResultPage(filters: {}),
                       ),
                     );
                   } else {
-                    // Si aucune connexion précédente n'est enregistrée, afficher un message
+                    // Si aucune connexion précédente n'est enregistrée
                     ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Aucune date de dernière connexion trouvée.'))
                     );

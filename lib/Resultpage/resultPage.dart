@@ -20,10 +20,6 @@ class _ResultPageState extends State<ResultPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ObjetsTrouvesProvider>(context, listen: false)
-          .recupererObjetsAvecFiltres(widget.filters);
-    });
   }
 
   @override
