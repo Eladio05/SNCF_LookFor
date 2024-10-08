@@ -106,6 +106,12 @@ class _DetailPageState extends State<DetailPage> {
             ),
             SizedBox(height: 20),
 
+            // Type de l'objet (gc_obo_type_c)
+            Text(
+              'Type d\'objet : ${widget.objetTrouve.type}', // Affichage du type d'objet
+              style: TextStyle(
+                fontSize: 16, color: Colors.white),
+            ),
             // Détails supplémentaires
             Text(
               'Date de perte : ${formatDateTime(widget.objetTrouve.date)}',

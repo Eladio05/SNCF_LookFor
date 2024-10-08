@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart'; // Ajout de cet import pour utiliser DateFormat
+import 'package:intl/intl.dart'; // Pour la gestion des dates
 import '../Provider/objetTrouveProvider.dart';
 import '../Model/objetTrouve.dart'; // Assurez-vous d'importer votre modèle ObjetTrouve
 import '../DetailsPage/detailsPage.dart'; // Importer la page de détails
 
 class ResultPage extends StatefulWidget {
   final Map<String, String> filters;
+  final bool isFromLastConnexion; // Ajout d'un paramètre pour vérifier si c'est depuis la dernière connexion
 
-  ResultPage({required this.filters});
+  ResultPage({required this.filters, this.isFromLastConnexion = false});
 
   @override
   _ResultPageState createState() => _ResultPageState();
@@ -16,10 +17,35 @@ class ResultPage extends StatefulWidget {
 
 class _ResultPageState extends State<ResultPage> {
   final Color bleuCanard = Color(0xFF006994);
+  late ScrollController _scrollController; // Controller pour gérer le défilement
 
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController(); // Initialisation du ScrollController
+    _scrollController.addListener(_onScroll); // Ajout du listener pour surveiller le défilement
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose(); // Dispose du ScrollController
+    super.dispose();
+  }
+
+  // Méthode appelée quand on scrolle la liste
+  void _onScroll() {
+    final provider = Provider.of<ObjetsTrouvesProvider>(context, listen: false);
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent &&
+        !provider.enChargement && !provider.finPagination) {
+
+      if (widget.isFromLastConnexion) {
+        // Si la page est chargée depuis la dernière connexion, on continue à utiliser la date de connexion
+        provider.recupererProchainesPagesAvecConnexion();
+      } else {
+        // Si on est en bas de la liste, que l'on ne charge pas déjà et qu'il reste des données à charger
+        provider.recupererProchainesPages(); // Charger les prochaines pages
+      }
+    }
   }
 
   @override
@@ -51,15 +77,20 @@ class _ResultPageState extends State<ResultPage> {
             }
 
             return ListView.builder(
-              itemCount: provider.objetsTrouves.length,
+              controller: _scrollController, // Utilisation du ScrollController
+              itemCount: provider.objetsTrouves.length + (provider.enChargement ? 1 : 0), // Ajout d'un élément pour l'indicateur de chargement
               itemBuilder: (context, index) {
+                if (index == provider.objetsTrouves.length) {
+                  return Center(child: CircularProgressIndicator()); // Affichage du loader en bas
+                }
+
                 var objet = provider.objetsTrouves[index];
 
                 // On convertit l'attribut date en DateTime si c'est une chaîne de caractères
                 String formattedDate;
                 try {
                   formattedDate = objet.date != null
-                      ? DateFormat('yyyy-MM-dd').format(DateTime.parse(objet.date!))
+                      ? DateFormat('dd/MM/yyyy').format(DateTime.parse(objet.date!)) // Formattage en JJ/MM/AAAA
                       : 'Date inconnue'; // Formattage de la date si elle existe
                 } catch (e) {
                   formattedDate = 'Date inconnue'; // En cas d'erreur lors de la conversion

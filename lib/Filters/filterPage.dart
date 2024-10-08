@@ -336,7 +336,7 @@ class _FiltersPageState extends State<FiltersPage> with WidgetsBindingObserver {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ResultPage(filters: {}),
+                        builder: (context) => ResultPage(filters: {}, isFromLastConnexion: true),
                       ),
                     );
                   } else {
