@@ -72,8 +72,3 @@ Ce choix a été fait pour simplifier l'implémentation d'une interface utilisat
 - **intl** : Utilisé pour formater les dates.
 - **shared_preferences** : Permet de sauvegarder la date de dernière connexion de l'utilisateur.
 - **multi_select_flutter** : Fournit des composants pour la sélection multiple avec recherche intégrée.
-
-## Conclusion
-
-L'application **SNCF Lookfor** permet aux utilisateurs de retrouver facilement leurs objets perdus en gare en filtrant les résultats grâce à plusieurs critères. L'implémentation a été pensée pour être modulable, claire et maintenable grâce à la séparation des responsabilités entre les providers et les services, tout en utilisant des packages pratiques comme `shared_preferences` et `multi_select_flutter` pour enrichir l'expérience utilisateur.
-
