@@ -34,8 +34,8 @@ flutter:
 
 
 flutter_native_splash:
-  color: "#0C131F"  # Correction de la couleur
-  image: assets/images/sncf-logo.png  # Utilisation du logo SNCF
+  color: "#0C131F"
+  image: assets/images/sncf-logo.png
   android: true
   ios: true
   web: true

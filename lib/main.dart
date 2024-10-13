@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'Provider/objetTrouveProvider.dart';
-import 'Filters/filterPage.dart'; // Importer la page des filtres
+import 'Filters/filterPage.dart';
 
 void main() {
   runApp(
@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         fontFamily: 'Avenir'
       ),
-      home: FiltersPage(), // Définit la page des filtres comme page d'accueil
+      home: FiltersPage(),
     );
   }
 }

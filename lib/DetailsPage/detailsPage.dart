@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Pour formater les dates
-import 'package:intl/date_symbol_data_local.dart'; // Pour charger les locales
-import '../Model/objetTrouve.dart'; // Ton modèle ObjetTrouve
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import '../Model/objetTrouve.dart';
 
 class DetailPage extends StatefulWidget {
   final ObjetTrouve objetTrouve;
@@ -16,12 +16,11 @@ class _DetailPageState extends State<DetailPage> {
   @override
   void initState() {
     super.initState();
-    initializeDateFormatting('fr_FR', null); // Initialiser la locale française
+    initializeDateFormatting('fr_FR', null);
   }
 
   @override
   Widget build(BuildContext context) {
-    // Fonction pour obtenir l'image en fonction du type d'objet
     String getImageForType(String type) {
       switch (type) {
         case "Appareils électroniques, informatiques, appareils photo":
@@ -57,80 +56,71 @@ class _DetailPageState extends State<DetailPage> {
         case "Vêtements, chaussures":
           return 'assets/images/vetement.png';
         default:
-          return 'assets/images/defaut.png'; // Image par défaut
+          return 'assets/images/defaut.png';
       }
     }
 
-    // Formater les dates
     String formatDateTime(String dateTime) {
       DateTime parsedDate = DateTime.parse(dateTime);
-      return DateFormat('d MMMM yyyy', 'fr_FR').format(parsedDate); // ex: 26 mars 2019
+      return DateFormat('d MMMM yyyy', 'fr_FR').format(parsedDate);
     }
 
     String formatTime(String dateTime) {
       DateTime parsedDate = DateTime.parse(dateTime);
-      return DateFormat('HH:mm').format(parsedDate); // ex: 12:04
+      return DateFormat('HH:mm').format(parsedDate);
     }
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color.fromRGBO(121, 201, 243, 1), // Couleur app bar
-        title: Text('Détails de l\'objet', style: TextStyle(color: Colors.white)),
+        backgroundColor: Color.fromRGBO(121, 201, 243, 1),
+        title: Text("Détails de l'objet", style: TextStyle(color: Colors.white)),
       ),
-      backgroundColor: Color.fromRGBO(12, 19, 31, 1), // Arrière-plan
+      backgroundColor: Color.fromRGBO(12, 19, 31, 1),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image de l'objet
             Center(
               child: Image.asset(
                 getImageForType(widget.objetTrouve.type),
-                width: 250, // Augmentation de la largeur
-                height: 250, // Augmentation de la hauteur
+                width: 250,
+                height: 250,
               ),
             ),
             SizedBox(height: 20),
-
-            // Nature de l'objet (titre)
             Center(
               child: Text(
                 widget.objetTrouve.nature,
                 style: TextStyle(
-                  fontSize: 28, // Taille plus grande pour la nature
+                  fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
             ),
             SizedBox(height: 20),
-
-            // Type de l'objet (gc_obo_type_c)
             Text(
-              'Type d\'objet : ${widget.objetTrouve.type}', // Affichage du type d'objet
+              "Type d'objet : ${widget.objetTrouve.type}",
               style: TextStyle(
                 fontSize: 16, color: Colors.white),
             ),
-            // Détails supplémentaires
             Text(
-              'Date de perte : ${formatDateTime(widget.objetTrouve.date)}',
+              "Date de perte : ${formatDateTime(widget.objetTrouve.date)}",
               style: TextStyle(fontSize: 16, color: Colors.white),
             ),
             Text(
-              'Heure de perte : ${formatTime(widget.objetTrouve.date)}',
+              "Heure de perte : ${formatTime(widget.objetTrouve.date)}",
               style: TextStyle(fontSize: 16, color: Colors.white),
             ),
             if (widget.objetTrouve.dateRestitution != null)
               Text(
-                'Date de restitution : ${formatDateTime(widget.objetTrouve.dateRestitution!)}',
+                "Date de restitution : ${formatDateTime(widget.objetTrouve.dateRestitution!)}",
                 style: TextStyle(fontSize: 16, color: Colors.white),
               ),
             SizedBox(height: 10),
-
-            // Gare d'origine
             Text(
-              'Gare d\'origine : ${widget.objetTrouve.gareOrigine}',
+              "Gare d'origine : ${widget.objetTrouve.gareOrigine}",
               style: TextStyle(fontSize: 16, color: Colors.white),
             ),
           ],
